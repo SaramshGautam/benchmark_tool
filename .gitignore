@@ -12,3 +12,4 @@ disk_file
 *.log
 *.bak
 *.swp
+*.tar
