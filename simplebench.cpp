@@ -22,11 +22,13 @@ int num_threads = 1;
 char direct_io = 'F';
 std::string output_trace;
 
+
 // Shared metrics for aggregation
 std::atomic<long> total_data_transferred(0); // In bytes
 std::atomic<long> total_requests(0);
 std::mutex latency_mutex;
 std::vector<double> all_latency_records;
+std::mutex trace_file_mutex; 
 
 // Function to generate a random offset within the specified range
 int get_random_offset() {
@@ -46,7 +48,7 @@ void* io_task(void* arg) {
 
     // Attempt to open the file
     std::cout << "Attempting to open file in io_task: " << file_device << std::endl;
-    std::cout << "Thread " << thread_id << " starting.\n";
+    std::cout << "Thread " << thread_id + 1 << " starting.\n";
 
     int fd = open(file_device.c_str(), flags);
     if (fd == -1) {
@@ -112,10 +114,18 @@ void* io_task(void* arg) {
         total_requests++;
 
         // Log the request in the trace file if needed
-        if (trace_file.is_open()) {
+        // if (trace_file.is_open()) {
+        //     trace_file << std::chrono::duration<double>(request_start - start_time).count() << " "
+        //                << thread_id << " " << request_type << " " << (offset / 512) << " "
+        //                << (request_size * 1024 / 512) << " " << latency << "\n";
+        // }
+        {
+            std::lock_guard<std::mutex> lock(trace_file_mutex);
+            std::ofstream trace_file(output_trace, std::ios::app); // Open in append mode
             trace_file << std::chrono::duration<double>(request_start - start_time).count() << " "
-                       << thread_id << " " << request_type << " " << (offset / 512) << " "
+                       << thread_id + 1 << " " << request_type << " " << (offset / 512) << " "
                        << (request_size * 1024 / 512) << " " << latency << "\n";
+            trace_file.close();
         }
 
         requests_completed++;
@@ -139,7 +149,7 @@ void* io_task(void* arg) {
     std::cout << "Buffer freed in io_task for thread " << thread_id << std::endl;
     if (trace_file.is_open()) trace_file.close();
 
-    std::cout << "Thread " << thread_id << " completed.\n";
+    std::cout << "Thread " << thread_id + 1 << " completed.\n";
 
     pthread_exit(nullptr);
 }
