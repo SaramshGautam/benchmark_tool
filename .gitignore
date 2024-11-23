@@ -1,0 +1,14 @@
+# Ignore compiled binary
+simplebench
+
+# Ignore trace output files
+test_output*
+
+# Ignore generated disk file
+disk_file
+
+# Ignore other temporary or backup files
+*.tmp
+*.log
+*.bak
+*.swp

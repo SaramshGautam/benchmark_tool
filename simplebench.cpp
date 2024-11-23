@@ -46,6 +46,8 @@ void* io_task(void* arg) {
 
     // Attempt to open the file
     std::cout << "Attempting to open file in io_task: " << file_device << std::endl;
+    std::cout << "Thread " << thread_id << " starting.\n";
+
     int fd = open(file_device.c_str(), flags);
     if (fd == -1) {
         perror("Error opening file/device");
@@ -136,6 +138,8 @@ void* io_task(void* arg) {
     free(buffer);  // Ensure each thread frees its own buffer
     std::cout << "Buffer freed in io_task for thread " << thread_id << std::endl;
     if (trace_file.is_open()) trace_file.close();
+
+    std::cout << "Thread " << thread_id << " completed.\n";
 
     pthread_exit(nullptr);
 }
